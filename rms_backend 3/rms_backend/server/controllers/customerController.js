@@ -32,7 +32,7 @@ const getCustomerProfile = async (req, res) => {
     res.json({
       name: customer.name,
       email: customer.email,
-      points: activePoints,
+      pointsBalance: activePoints,
       tier: customer.tier || "No tier assigned",
       adminId: customer.adminId,
       history: customer.history,

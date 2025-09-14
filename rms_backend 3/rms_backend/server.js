@@ -79,7 +79,11 @@ app.use("/transactions", transactionRoutes);
 
 const customerRoutes = require("./server/routes/customerRoutes");
 app.use("/customer", customerRoutes);
+const spinWheelRoutes = require("./server/routes/spinWheelRoutes");
+app.use("/spin-wheel", spinWheelRoutes);
 
+const customerPolicyRoutes = require("./server/routes/customerPolicyRoutes");
+app.use("/customer", customerPolicyRoutes);
 // MongoDB connection
 mongoose
   .connect(process.env.MONGO_URI)

@@ -14,6 +14,7 @@ import CustomerLogin from "./pages/CustomerLogin";
 import CustomerTransactions from "./pages/CustomerTransactions";
 import CustomerPoints from "./pages/CustomerPoints";
 import CustomerProfile from "./pages/CustomerProfile";
+import CustomerSpinWheel from "./pages/CustomerSpinWheel"; // Added import
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
         <Route path="/customer/transactions" element={<CustomerTransactions />} />
         <Route path="/customer/points" element={<CustomerPoints />} />
         <Route path="/customer/profile" element={<CustomerProfile />} />
+        <Route path="/customer/spin-wheel" element={<CustomerSpinWheel />} /> {/* Added route */}
       </Routes>
     </BrowserRouter>
   );

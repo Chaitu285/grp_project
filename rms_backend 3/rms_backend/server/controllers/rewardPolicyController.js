@@ -24,6 +24,71 @@ exports.createOrUpdatePolicy = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+// POST /spin-wheel/spin
+exports.spinWheel = async (req, res) => {
+  try {
+    const customerId = req.user._id;
+    const { adminId } = req.body;
+
+    if (!adminId) {
+      return res.status(400).json({ message: "Admin ID is required" });
+    }
+
+    // Fetch reward policy for admin
+    const policy = await RewardPolicy.findOne({ adminId });
+    if (!policy) {
+      return res.status(404).json({ message: "Reward policy not found for this business" });
+    }
+
+    if (!policy.spinWheelSegments || policy.spinWheelSegments.length === 0) {
+      return res.status(400).json({ message: "Spin wheel is not configured with any segments" });
+    }
+
+    // Fetch customer
+    const customer = await User.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    // Check minimum points to spin
+    if ((customer.pointsBalance || 0) < (policy.spinWheelMinPoints || 0)) {
+      return res.status(400).json({
+        message: `Minimum ${policy.spinWheelMinPoints} points required to spin the wheel`
+      });
+    }
+
+    // Select random reward segment
+    const segments = policy.spinWheelSegments;
+    const randomIndex = Math.floor(Math.random() * segments.length);
+    const wonSegment = segments[randomIndex];
+
+    // Add won points to customer's pointsHistory with expiry
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + (policy.pointsExpiryDays || 365) * 24 * 60 * 60 * 1000);
+
+    customer.pointsHistory.push({
+      points: wonSegment.points,
+      redeemed: false,
+      earnedAt: now,
+      expiresAt,
+    });
+
+    customer.pointsBalance += wonSegment.points;
+
+    await customer.save();
+
+    // Return spin result
+    return res.json({
+      message: `Congratulations! You won ${wonSegment.points} points.`,
+      wonPoints: wonSegment.points,
+      pointsBalance: customer.pointsBalance,
+    });
+
+  } catch (error) {
+    console.error("Spin Wheel Error:", error);
+    return res.status(500).json({ message: "Server error during spin wheel processing" });
+  }
+};
 
 // ✅ Update points expiry separately
 exports.updatePointsExpiry = async (req, res) => {

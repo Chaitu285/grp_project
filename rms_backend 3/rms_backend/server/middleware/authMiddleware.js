@@ -16,6 +16,10 @@ exports.protect = async (req, res, next) => {
       if (!req.user) {
         return res.status(401).json({ message: "User not found" });
       }
+console.log("Authorization Header:", req.headers.authorization);
+console.log("Token:", token);
+console.log("Decoded Token:", decoded);
+console.log("User fetched:", req.user);
 
       next();
     } catch (err) {

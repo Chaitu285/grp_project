@@ -1,11 +1,11 @@
-// frontend/src/api.js
+// src/api.js
 import axios from "axios";
 
 const API = axios.create({
   baseURL: "http://localhost:8000", // backend base URL
 });
 
-// ✅ Add token automatically for every request
+// Automatically add token for every request
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -17,4 +17,12 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export default API;
+// Spin wheel POST API call - no adminId needed in request body
+const spinWheel = () => {
+  return API.post("/spin-wheel/spin");
+};
+
+export default {
+  ...API,
+  spinWheel,
+};

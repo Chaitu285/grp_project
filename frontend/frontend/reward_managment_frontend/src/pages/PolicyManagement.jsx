@@ -4,7 +4,6 @@ import API from "../api";
 import { FileText, Tag, Gift } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
-
 const PolicyManagement = () => {
   const [policy, setPolicy] = useState(null);
   const [form, setForm] = useState({
@@ -14,6 +13,8 @@ const PolicyManagement = () => {
     redemptionRate: "",
     minRedeemPoints: "",
     pointsExpiryDays: "",
+    spinWheelMinPoints: "", // New field
+    spinWheelSegments: [],  // New field (array of numbers)
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -61,6 +62,8 @@ const PolicyManagement = () => {
         redemptionRate: res.data.redemptionRate || "",
         minRedeemPoints: res.data.minRedeemPoints || "",
         pointsExpiryDays: res.data.pointsExpiryDays || "",
+        spinWheelMinPoints: res.data.spinWheelMinPoints || "", // populate if exists
+        spinWheelSegments: res.data.spinWheelSegments || [],   // populate if exists
       });
       setError("");
     } catch (err) {
@@ -72,6 +75,15 @@ const PolicyManagement = () => {
   };
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  // Special handler for spinWheelSegments as array of numbers
+  const handleSpinWheelSegmentsChange = (e) => {
+    const values = e.target.value
+      .split(",")
+      .map((v) => Number(v.trim()))
+      .filter((v) => !isNaN(v));
+    setForm({ ...form, spinWheelSegments: values });
+  };
 
   const handleSave = async () => {
     try {
@@ -103,6 +115,8 @@ const PolicyManagement = () => {
         redemptionRate: "",
         minRedeemPoints: "",
         pointsExpiryDays: "",
+        spinWheelMinPoints: "",
+        spinWheelSegments: [],
       });
       setCategoryRules([]);
       setThresholds([]);
@@ -295,6 +309,37 @@ const PolicyManagement = () => {
                 />
               </div>
 
+              {/* New Spin Wheel Fields */}
+              <div className="flex flex-col">
+                <label htmlFor="spinWheelMinPoints" className="mb-1 font-semibold text-gray-700">
+                  Minimum Points to Spin Wheel
+                </label>
+                <input
+                  type="number"
+                  id="spinWheelMinPoints"
+                  name="spinWheelMinPoints"
+                  placeholder="Minimum points required to spin"
+                  value={form.spinWheelMinPoints}
+                  onChange={handleChange}
+                  className="border p-2 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col md:col-span-2">
+                <label htmlFor="spinWheelSegments" className="mb-1 font-semibold text-gray-700">
+                  Spin Wheel Segments (Points, comma separated)
+                </label>
+                <input
+                  type="text"
+                  id="spinWheelSegments"
+                  name="spinWheelSegments"
+                  placeholder="e.g., 5,10,20,50,100"
+                  value={form.spinWheelSegments ? form.spinWheelSegments.join(",") : ""}
+                  onChange={handleSpinWheelSegmentsChange}
+                  className="border p-2 rounded"
+                />
+              </div>
+
               <div className="flex flex-col md:col-span-2">
                 <label htmlFor="description" className="mb-1 font-semibold text-gray-700">
                   Description
@@ -476,26 +521,25 @@ const PolicyManagement = () => {
               <div className="mt-6 h-40 w-40 mx-auto">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-  <Pie
-    data={thresholds.map((t, i) => ({
-      name: `Tier ${i + 1}`,
-      value: t.bonusPoints,
-    }))}
-    dataKey="value"
-    nameKey="name"
-    outerRadius={70}
-    label={({ name, value, percent }) =>
-      `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
-    } // 👈 Show Tier, points, and percentage
-    labelLine={false} // 👈 cleaner look
-  >
-    {thresholds.map((t, i) => (
-      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-    ))}
-  </Pie>
-  <Tooltip formatter={(value, name) => [`${value} pts`, name]} />
-</PieChart>
-
+                    <Pie
+                      data={thresholds.map((t, i) => ({
+                        name: `Tier ${i + 1}`,
+                        value: t.bonusPoints,
+                      }))}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={70}
+                      label={({ name, value, percent }) =>
+                        `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
+                      }
+                      labelLine={false}
+                    >
+                      {thresholds.map((t, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value, name) => [`${value} pts`, name]} />
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
             )}

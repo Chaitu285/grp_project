@@ -35,8 +35,7 @@ const Customer = () => {
         (p) =>
           !p.redeemed &&
           new Date(p.expiresAt) > now &&
-          (new Date(p.expiresAt) - now) / (1000 * 60 * 60 * 24) <=
-            POINTS_EXPIRY_WARNING_DAYS
+          (new Date(p.expiresAt) - now) / (1000 * 60 * 60 * 24) <= POINTS_EXPIRY_WARNING_DAYS
       )
       .reduce((sum, p) => sum + p.points, 0);
   };
@@ -55,9 +54,7 @@ const Customer = () => {
       // Update balance based on pointsHistory to reflect latest points
       const now = new Date();
       const activePoints = profile.pointsHistory
-        ? profile.pointsHistory
-            .filter((p) => !p.redeemed && new Date(p.expiresAt) > now)
-            .reduce((sum, p) => sum + p.points, 0)
+        ? profile.pointsHistory.filter((p) => !p.redeemed && new Date(p.expiresAt) > now).reduce((sum, p) => sum + p.points, 0)
         : 0;
 
       setBalance(activePoints);
@@ -68,9 +65,7 @@ const Customer = () => {
       const historyRes = await api.get("/transactions/history?limit=5", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const recentTransactions = Array.isArray(historyRes.data.transactions)
-        ? historyRes.data.transactions
-        : [];
+      const recentTransactions = Array.isArray(historyRes.data.transactions) ? historyRes.data.transactions : [];
       setTransactions(recentTransactions);
 
       setError("");
@@ -109,8 +104,7 @@ const Customer = () => {
 
     const catRule = validCategories.find((c) => c.name === categoryVal);
     if (catRule && amt >= catRule.minAmount) {
-      categoryPoints =
-        Math.floor((amt / 100) * catRule.pointsPer100) + (catRule.bonusPoints || 0);
+      categoryPoints = Math.floor((amt / 100) * catRule.pointsPer100) + (catRule.bonusPoints || 0);
     }
 
     let thresholdBonus = 0;
@@ -119,9 +113,7 @@ const Customer = () => {
     });
 
     const tierMultiplier = 1; // optional: can be dynamic if tier-based multiplier is applied
-    const totalEarnedPoints = Math.floor(
-      (basePoints + categoryPoints) * tierMultiplier + thresholdBonus
-    );
+    const totalEarnedPoints = Math.floor((basePoints + categoryPoints) * tierMultiplier + thresholdBonus);
 
     return { basePoints, categoryPoints, thresholdBonus, tierMultiplier, totalEarnedPoints };
   };
@@ -189,17 +181,43 @@ const Customer = () => {
           Loyalty Program
         </h1>
         <nav className="flex items-center space-x-4 md:space-x-6">
-          <button onClick={() => navigate("/customer/points")} className="bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded text-white font-semibold">Points</button>
-          <button onClick={() => navigate("/customer/transactions")} className="bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded text-white font-semibold">Transactions</button>
-          <button onClick={() => navigate("/customer/profile")} className="bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded text-white font-semibold">Profile</button>
-          <button onClick={logout} className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-white font-semibold">Logout</button>
+          <button
+            onClick={() => navigate("/customer/points")}
+            className="bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded text-white font-semibold"
+          >
+            Points
+          </button>
+          <button
+            onClick={() => navigate("/customer/transactions")}
+            className="bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded text-white font-semibold"
+          >
+            Transactions
+          </button>
+          <button
+            onClick={() => navigate("/customer/profile")}
+            className="bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded text-white font-semibold"
+          >
+            Profile
+          </button>
+          {/* Spin Wheel Button added here */}
+          <button
+            onClick={() => navigate("/customer/spin-wheel")}
+            className="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded text-white font-semibold"
+          >
+            Spin Wheel
+          </button>
+          <button
+            onClick={logout}
+            className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-white font-semibold"
+          >
+            Logout
+          </button>
         </nav>
       </header>
 
       {/* Main */}
       <main className="flex-1 overflow-y-auto p-4 md:p-6 flex justify-center items-start">
         <div className="w-full max-w-4xl bg-white rounded-2xl p-6 md:p-8 shadow-lg">
-
           {/* Tier + Expiring Points */}
           <section className="mb-6 p-5 bg-indigo-50 border border-indigo-200 rounded-xl text-center">
             <p className="text-xl font-semibold text-indigo-700 mb-2">
@@ -225,7 +243,9 @@ const Customer = () => {
                 <p>Category Points: {pointsBreakdown.categoryPoints}</p>
                 <p>Tier Multiplier: {pointsBreakdown.tierMultiplier}</p>
                 <p>Threshold Bonus: {pointsBreakdown.thresholdBonus}</p>
-                <p><strong>Total Earned Points: {pointsBreakdown.totalEarnedPoints}</strong></p>
+                <p>
+                  <strong>Total Earned Points: {pointsBreakdown.totalEarnedPoints}</strong>
+                </p>
               </div>
             )}
 
@@ -241,11 +261,39 @@ const Customer = () => {
 
           {/* Transaction Form */}
           <form onSubmit={handleAddTransaction} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400" required min="0" step="0.01" />
-            <input type="text" placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400" />
-            <input type="number" placeholder="Redeem Points (optional)" value={redeemPoints} onChange={(e) => setRedeemPoints(e.target.value)} className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400" min="0" />
+            <input
+              type="number"
+              placeholder="Amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400"
+              required
+              min="0"
+              step="0.01"
+            />
+            <input
+              type="text"
+              placeholder="Category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400"
+            />
+            <input
+              type="number"
+              placeholder="Redeem Points (optional)"
+              value={redeemPoints}
+              onChange={(e) => setRedeemPoints(e.target.value)}
+              className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400"
+              min="0"
+            />
             <div className="md:col-span-3">
-              <button type="submit" disabled={submitting} className={`w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-semibold shadow-md ${submitting ? "opacity-60 cursor-not-allowed" : ""}`}>
+              <button
+                type="submit"
+                disabled={submitting}
+                className={`w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-semibold shadow-md ${
+                  submitting ? "opacity-60 cursor-not-allowed" : ""
+                }`}
+              >
                 {submitting ? "Processing..." : "Add Transaction"}
               </button>
             </div>
@@ -263,11 +311,20 @@ const Customer = () => {
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
                 {transactions.slice(0, 5).map((t) => (
-                  <div key={t._id} className="border rounded-xl p-5 shadow-md bg-gradient-to-r from-indigo-50 to-blue-50 hover:shadow-xl transition">
-                    <p className="text-lg font-semibold text-gray-800">Original Amount: <span className="text-indigo-600">₹{t.amount}</span></p>
-                    <p className="text-gray-700"><strong>Category:</strong> {t.category || "Not entered"}</p>
+                  <div
+                    key={t._id}
+                    className="border rounded-xl p-5 shadow-md bg-gradient-to-r from-indigo-50 to-blue-50 hover:shadow-xl transition"
+                  >
+                    <p className="text-lg font-semibold text-gray-800">
+                      Original Amount: <span className="text-indigo-600">₹{t.amount}</span>
+                    </p>
+                    <p className="text-gray-700">
+                      <strong>Category:</strong> {t.category || "Not entered"}
+                    </p>
                     <p className="text-green-600 font-semibold">+ Earned: {t.earnedPoints || 0}</p>
-                    <p className="text-red-600 font-semibold">- Redeemed: {t.redeemedPoints || 0} (₹{t.redeemedAmount || 0})</p>
+                    <p className="text-red-600 font-semibold">
+                      - Redeemed: {t.redeemedPoints || 0} (₹{t.redeemedAmount || 0})
+                    </p>
                     <p className="text-green-700 font-bold">Final Amount Paid: ₹{t.finalAmount || t.amount}</p>
                     <p className="text-blue-700 font-bold">Final Balance: {t.finalPoints || balance}</p>
                     <p className="text-sm text-gray-500 mt-2">{new Date(t.createdAt).toLocaleString()}</p>
